@@ -42,6 +42,21 @@ local function scaleFaccioloHealth(facc)
 end
 
 local function CheckAddons()
+	if RSR then
+		-- Ringslinger Revolution:
+		HL_CreateItem(safeGetMT("MT_RSR_HEALTH_SMALL"), {health = {give = 10}})
+		HL_CreateItem(safeGetMT("MT_RSR_HEALTH"), {health = {give = 25}})
+		HL_CreateItem(safeGetMT("MT_RSR_HEALTH_BIG"), {health = {give = 50}})
+		HL_CreateItem(safeGetMT("MT_RSR_ARMOR_SMALL"), {armor = {give = 10}})
+		HL_CreateItem(safeGetMT("MT_RSR_ARMOR"), {armor = {give = 25}})
+		HL_CreateItem(safeGetMT("MT_RSR_ARMOR_BIG"), {armor = {give = 50}})
+		RSR.SKIN_INFO["kombifreeman"] = {
+			noweapons = true,
+			nodamage = true,
+			noenemydamage = true,
+			hudmodname = ""
+		}
+	end
 	if DoomGuy
 		-- DOOM:
 		HL_CreateItem(safeGetMT(MT_ITEM_STIMPACK), {health = {give = 10}})

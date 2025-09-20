@@ -1738,7 +1738,7 @@ local SUIT_NEXT_IN_30MIN = function(line, player)
 	player.hl.suitvoicewait[line] = 30*TICRATE*60
 end
 
-local function DoDamageAndBursts(target, inf, damage, damagetype)
+local function DoDamageAndBursts(target, inf, damage, damagetype, noInvuln)
 	local prevHealth = target.hl.health
     local kill = HL_DamageGordon(target, inf, damage, damagetype)
 
@@ -1886,7 +1886,7 @@ local function DoDamageAndBursts(target, inf, damage, damagetype)
     -- Give invuln if this wasn't from another Freeman
 	local stats = HL1_DMGStats[inf and inf.valid and inf.type] or {}
     if (damagetype & HL.DMG.TIMEBASED) or not (inf and inf.valid and (inf.stats or (inf.hl and inf.hl.dontdoinvuln) or (inf.target and inf.target.skin == "doomguy")))
-	and not stats.noflashing then
+	and not (stats.noflashing or noInvuln) then
         target.player.powers[pw_flashing] = 18
     end
 
@@ -1938,20 +1938,54 @@ addHook("MobjDamage", function(target, inf, src, dmg, dmgType)
 
 	-- Final damage resolution:
 	local finalDamage
-	if targetIsDoomguy then
-		-- Doomguy override: always use the raw damage from the inflictor
-		finalDamage = chosenInf.damage
-	elseif dmg and dmg > 1 then
-		-- Explicit dmg override if greater than default (1)
-		finalDamage = dmg
-	elseif not chosenInf.ignoredamagedef then
-		-- Use HL1-defined damage if allowed
-		finalDamage = HL_GetDamage(chosenInf)
-	end
+	local dontDoInvuln
 
-	if finalDamage == nil then
-		finalDamage = 0
-	end
+    if targetIsDoomguy then
+        -- Doomguy override: always use the raw damage from the inflictor
+        finalDamage = chosenInf.damage
+        finalType = (HL1_DMGStats[chosenInf.type] and HL1_DMGStats[chosenInf.type].damagetype) or dmgType
+    elseif RSR and RSR.GamemodeActive() then
+		-- RSR Damage override: Lazycopy Ringslinger Revolution v2.0's code
+		-- There's literally no good reason to make us have to do this, it could easily become outdated
+		local infInfo = RSR.MOBJ_INFO and RSR.MOBJ_INFO[chosenInf.type]
+		dontDoInvuln = true
+
+		-- Projectiles registered with RSR
+		if chosenInf.rsrProjectile then
+			-- ProjectileMoveCollide normally sets rsrDamage already.
+			if not chosenInf.rsrDamage then
+				-- fall back to its mobj info if present, else keep nil
+				finalDamage = (chosenInf.info and chosenInf.info.damage) or finalDamage
+			else
+				finalDamage = chosenInf.rsrDamage
+			end
+		-- Player as inflictor (melee, Armageddon special-case)
+		elseif Valid(chosenInf.player) then
+			if dmgType == DMG_NUKE and RSR.GetArmageddonDamage then
+				finalDamage = RSR.GetArmageddonDamage(target, chosenInf)
+			else
+				-- melee hit from a player: use direct damage value
+				finalDamage = dmg
+			end
+		-- Other things (enemies/environment)
+		elseif not chosenInf.rsrRealDamage then
+			if infInfo and infInfo.damage ~= nil then
+				finalDamage = infInfo.damage
+			else
+				finalDamage = (dmg > 1 and dmg or HL_GetDamage(chosenInf)) or 1
+			end
+		end
+    elseif dmg and dmg > 1 then
+        -- Explicit dmg override if greater than default (1)
+        finalDamage = dmg
+    elseif not chosenInf.ignoredamagedef then
+        -- Use HL1-defined damage if allowed
+        finalDamage = HL_GetDamage(chosenInf)
+    end
+
+    if finalDamage == nil then
+        finalDamage = 0
+    end
 
 	-- Pick damage type from stats or fallback to hardcoded damage map
 	local finalType =
@@ -1962,7 +1996,7 @@ addHook("MobjDamage", function(target, inf, src, dmg, dmgType)
     target.player.timeshit = target.player.timeshit + 1
 
     -- Finally, do the damage and bursts
-    DoDamageAndBursts(target, chosenInf, finalDamage, finalType)
+    DoDamageAndBursts(target, chosenInf, finalDamage, finalType, dontDoInvuln)
     return true
 
 end, MT_PLAYER)

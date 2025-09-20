@@ -112,72 +112,80 @@ mobjinfo[MT_HL1_BOLT] = {
 }
 
 -- for some DOG ASS REASON, I HAVE TO PUT THESE HERE. fuck this dumbass game vro
+-- RSR is Ringslinger Revolution's global struct
+
+local bj_weapons = {
+    [1] = { real = "Knife", internal = "knife" },
+    [2] = { real = "Pistol", internal = "pistol" },
+    [3] = { real = "Machine Gun", internal = "machinegun" },
+    [4] = { real = "Chaingun", internal = "chaingun" },
+}
+
+local duke_weapons = {
+    [1] = { real = "Pistol", internal = "pistol" },
+    [2] = { real = "Shotgun", internal = "shotgun" },
+    [3] = { real = "Chaingun", internal = "chaingun" },
+    [4] = { real = "RPG", internal = "rpg" },
+    [5] = { real = "Shrinker", internal = "shrinker" },
+    [6] = { real = "Devastator", internal = "devastator" },
+    [7] = { real = "Freezethrower", internal = "freezethrower" },
+}
+
+local tailsguy_weapons = {
+	[1] = {real = "Shotgun", internal = "shotgun"},
+	[2] = {real = "Rocket Launcher", internal = "rocketlauncher"},
+	[3] = {real = "Chaingun", internal = "chaingun"},
+}
+
+local rsrtwo_weapons = {
+	[0] = {real = "Nothing", internal = "none"},
+	[1] = {real = "Match Ring", internal = "matchring"},
+	[2] = {real = "Scatter Ring", internal = "scatterring"},
+	[3] = {real = "Auto Ring", internal = "autoring"},
+	[4] = {real = "Bounce Ring", internal = "bouncering"},
+	[5] = {real = "Grenade Ring", internal = "bouncering"},
+	[6] = {real = "Bomb Ring", internal = "bombring"},
+	[7] = {real = "Homing Ring", internal = "homingring"},
+	[8] = {real = "Rail Ring", internal = "railring"},
+}
+
+local ringslinger_weapons = {
+	[0] = {real = "Match Ring", internal = "matchring"},
+	[WEP_AUTO] = {real = "Auto Ring", internal = "autoring"},
+	[WEP_BOUNCE] = {real = "Bounce Ring", internal = "bouncering"},
+	[WEP_EXPLODE] = {real = "Explosion Ring", internal = "explosionring"},
+	[WEP_GRENADE] = {real = "Grenade Ring", internal = "grenadering"},
+	[WEP_RAIL] = {real = "Rail Ring", internal = "railring"},
+	[WEP_SCATTER] = {real = "Scatter Ring", internal = "scatterring"},
+}
+
+local function getMappedName(map, key, realname, default)
+    local entry = map[key]
+    if not entry then return default end
+
+    if type(entry) == "table" then
+        if realname then return entry.real or entry.internal end
+        return entry.internal or entry.real
+    else
+        -- entry is a plain string
+        return entry
+    end
+end
+
+-- small convenience for the common "worldspawn" vs "World Spawn"
+local WORLDSPAWN = { real = "World Spawn", internal = "worldspawn" }
+local function worldspawnName(realname) return realname and WORLDSPAWN.real or WORLDSPAWN.internal end
 
 local function getVanillaCharWep(player, realname)
-	if realname then
-		if RingslingerRev then
-			-- Ringslinger Revolution
-			local mobjToName = {
-				[MT_RSR_PROJECTILE_BASIC] = "Match Ring",
-				[MT_RSR_PROJECTILE_SCATTER] = "Scatter Ring",
-				[MT_RSR_PROJECTILE_AUTO] = "Automatic Ring",
-				[MT_RSR_PROJECTILE_BOUNCE] = "Bounce Ring",
-				[MT_RSR_PROJECTILE_GRENADE] = "Grenade Ring",
-				[MT_RSR_PROJECTILE_BOMB] = "Bomb Ring",
-				[MT_RSR_PROJECTILE_HOMING] = "Homing Ring",
-				[MT_RSR_PROJECTILE_RAIL] = "Rail Ring",
-				[MT_CORK] = "Fang's Cork",
-				[MT_LHRT] = "Love Heart"
-			}
-			return "World Spawn"
-		elseif RingSlinger and RingSlinger.Weapons then
-			-- Ringslinger NEO
-			return "World Spawn"
-		else
-			-- Base Ringslinger
-			local wepmap = {
-				[0] = "Match Ring",
-				[WEP_AUTO] = "Automatic Ring",
-				[WEP_BOUNCE] = "Bounce Ring",
-				[WEP_SCATTER] = "Scatter Ring",
-				[WEP_GRENADE] = "Grenade Ring",
-				[WEP_EXPLODE] = "Explosion Ring",
-				[WEP_RAIL] = "Rail Ring",
-			}
-			return wepmap[player.currentweapon] or "World Spawn"
-		end
+	if RSR and RSR.GamemodeActive() then
+		-- Ringslinger Revolution 2.0
+		return getMappedName(rsrtwo_weapons, player.rsrinfo.readyWeapon, realname, "Bad WepID " .. tostring(player.rsrinfo.readyWeapon) .. "! Blame MIDIMan for this I did as much as I could")
+	elseif RingSlinger and RingSlinger.Weapons then
+		-- Ringslinger NEO
+		return "World Spawn"
 	else
-		if RingslingerRev then
-			-- Ringslinger Revolution
-			local mobjToName = {
-				[MT_RSR_PROJECTILE_BASIC] = "matchring",
-				[MT_RSR_PROJECTILE_SCATTER] = "scatterring",
-				[MT_RSR_PROJECTILE_AUTO] = "automaticring",
-				[MT_RSR_PROJECTILE_BOUNCE] = "bouncering",
-				[MT_RSR_PROJECTILE_GRENADE] = "grenadering",
-				[MT_RSR_PROJECTILE_BOMB] = "bombring",
-				[MT_RSR_PROJECTILE_HOMING] = "homingring",
-				[MT_RSR_PROJECTILE_RAIL] = "railring",
-				[MT_CORK] = "fangcork",
-				[MT_LHRT] = "loveheart"
-			}
-			return "worldspawn"
-		elseif RingSlinger and RingSlinger.Weapons then
-			-- Ringslinger NEO
-			return "worldspawn"
-		else
-			-- Base Ringslinger
-			local wepmap = {
-				[0] = "matchring",
-				[WEP_AUTO] = "automaticring",
-				[WEP_BOUNCE] = "bouncering",
-				[WEP_SCATTER] = "scatterring",
-				[WEP_GRENADE] = "grenadering",
-				[WEP_EXPLODE] = "explosionring",
-				[WEP_RAIL] = "railring",
-			}
-			return wepmap[player.currentweapon] or "worldspawn"
-		end
+		-- Base Ringslinger
+		return getMappedName(ringslinger_weapons, player.currentweapon, realname, worldspawnName(realname))
 	end
 end
 
@@ -285,23 +293,7 @@ rawset(_G, "kombiHL1SpecialHandlers", {
         end,
 		getwep = function(player, realname)
 			if not player.wolfenstein then return "???" end
-			local wepmap
-			if realname then
-				wepmap = {
-					"Knife",
-					"Pistol",
-					"Machine Gun",
-					"Chaingun",
-				}
-			else
-				wepmap = {
-					"knife",
-					"pistol",
-					"machinegun",
-					"chaingun",
-				}
-			end
-			return wepmap[player.wolfenstein.wep] or "???"
+			return getMappedName(bj_weapons, player.wolfenstein.wep, realname, "???")
 		end,
 		getmaxhealth = function(player)
 			return 100 -- Assumption
@@ -338,29 +330,7 @@ rawset(_G, "kombiHL1SpecialHandlers", {
         end,
 		getwep = function(player, realname)
 			if not player.duke then return "???" end
-			local wepmap
-			if realname then
-				wepmap = {
-					"Pistol",
-					"Shotgun",
-					"Chaingun",
-					"RPG",
-					"Shrinker",
-					"Devastator",
-					"Freezethrower"
-				}
-			else
-				wepmap = {
-					"pistol",
-					"shotgun",
-					"chaingun",
-					"rpg",
-					"shrinker",
-					"devastator",
-					"freezethrower"
-				}
-			end
-			return wepmap[player.duke.curweapon] or "???"
+			return getMappedName(duke_weapons, player.duke.curweapon, realname, "???")
 		end,
 		getmaxhealth = function(player)
 			return 100 -- everything about this man is hardcoded to hell and back, so im not gonna bother
@@ -399,21 +369,7 @@ rawset(_G, "kombiHL1SpecialHandlers", {
         end,
 		getwep = function(player, realname)
 			if not player.tgvars then return "???" end
-			local wepmap
-			if realname then
-				wepmap = {
-					"Shotgun",
-					"Rocket",
-					"Chaingun"
-				}
-			else
-				wepmap = {
-					"shotgun",
-					"rocket",
-					"chaingun"
-				}
-			end
-			return wepmap[player.tgvars.weapon + 1] or "???"
+			return getMappedName(tailsguy_weapons, player.tgvars.weapon + 1, realname, "???")
 		end,
 		getmaxhealth = function(player)
 			return 100
@@ -612,19 +568,33 @@ rawset(_G, "kombiHL1SpecialHandlers", {
 			if tmthing.target.hl.dontkillplayers then return false end
 			local vplayer = thing.player
 			if not vplayer then return end
-			if vplayer.powers[pw_shield] then
-				P_RemoveShield(vplayer)
+			if RSR and RSR.GamemodeActive() then
+				tmthing.rsrRealDamage = true
+				local killicon = tmthing and ((tmthing.stats and tmthing.stats.killicon)
+							 or (tmthing.wepstats and tmthing.wepstats.killicon))
+							 or "HLKILLGENER"
+
+				if killicon == "HLKILLGENER" and ((dmgType or 0) & HL.DMG.CRUSH) then
+					killicon = "HLKILLCRUSH"
+				end
+				RSR.KILLFEED_MOBJ_TO_ICON[tmthing.type] = killicon
+
+				P_DamageMobj(thing, tmthing, tmthing and tmthing.target or tmthing, dmg, dmgType)
 			else
-				vplayer.rings = $ - FixedMul(dmg, FRACUNIT*2/5)
-				S_StartSound(thing, sfx_antiri)
-				P_DoPlayerPain(vplayer, tmthing, tmthing and tmthing.target or tmthing)
-				if vplayer.rings < 0 then
-					P_PlayerWeaponPanelOrAmmoBurst(vplayer)
-					P_PlayerEmeraldBurst(vplayer)
-					P_PlayerFlagBurst(vplayer)
-					HL_HandleKillFeed(thing, tmthing and tmthing.target or tmthing, tmthing, dmgType)
-					maybeDoKillMsg(thing, tmthing, tmthing and tmthing.target or tmthing, dmgType)
-					P_KillMobj(thing, tmthing, tmthing and tmthing.target or tmthing)
+				if vplayer.powers[pw_shield] then
+					P_RemoveShield(vplayer)
+				else
+					vplayer.rings = $ - FixedMul(dmg, FRACUNIT*2/5)
+					S_StartSound(thing, sfx_antiri)
+					P_DoPlayerPain(vplayer, tmthing, tmthing and tmthing.target or tmthing)
+					if vplayer.rings < 0 then
+						P_PlayerWeaponPanelOrAmmoBurst(vplayer)
+						P_PlayerEmeraldBurst(vplayer)
+						P_PlayerFlagBurst(vplayer)
+						HL_HandleKillFeed(thing, tmthing and tmthing.target or tmthing, tmthing, dmgType)
+						maybeDoKillMsg(thing, tmthing, tmthing and tmthing.target or tmthing, dmgType)
+						P_KillMobj(thing, tmthing, tmthing and tmthing.target or tmthing)
+					end
 				end
 			end
 			if (gametyperules & GTR_TAG) then
@@ -645,7 +615,15 @@ rawset(_G, "kombiHL1SpecialHandlers", {
 				table.insert(lines, "Wielding " .. weapon)
 			end
 
-			local healthline = tostring(player.rings) .. " Rings (" .. FixedMul(player.rings + 1, FRACUNIT*5/2) .. "%)"
+			local healthline
+			if RSR and RSR.GamemodeActive() and player.rsrinfo then
+				healthline = tostring(player.rsrinfo.health) .. "%"
+				if player.rsrinfo.armor then
+					healthline = $ .. " | " .. tostring(player.rsrinfo.armor) .. "%"
+				end
+			else
+				healthline = tostring(player.rings) .. " Rings (" .. FixedMul(player.rings + 1, FRACUNIT*5/2) .. "%)"
+			end
 			table.insert(lines, healthline)
 
 			return lines
