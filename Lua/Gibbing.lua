@@ -80,9 +80,9 @@ local function SpawnRandomGibs(victim, cGibs, human, skull)
 
         -- Set velocity (using attack direction from HL data)
         local attackDir = NormalizeVector(victim.hl.attackDir)
-        gib.momx = HLToDoom(-attackDir.x) * 3
-        gib.momy = HLToDoom(-attackDir.y) * 3
-        gib.momz = HLToDoom(-attackDir.z) * 3
+        gib.momx = -attackDir.x * 3
+        gib.momy = -attackDir.y * 3
+        gib.momz = -attackDir.z * 3
         
         -- Add noise
 		local rand = P_RandomFixed()
