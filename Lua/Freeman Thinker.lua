@@ -1091,7 +1091,8 @@ local function doConfigShit(player)
 	for k,v in pairs(myConfig) do
 		myConfig[k] = stripOuterQuotes(v)
 	end
-	COM_BufInsertText(player, "hl_loadspray '" .. mySpray.color .. "' '" .. mySpray.spray .. "'")
+	mySpray = $ or {color = nil, spray = "lambda"}
+	COM_BufInsertText(player, "hl_loadspray '" .. tostring(mySpray.color) .. "' '" .. tostring(mySpray.spray) .. "'")
 	for k, v in pairs(myConfig) do
 		COM_BufInsertText(player, "hl_loadconfigkey '" .. k .. "' '" .. tostring(v) .. "'")
 	end
@@ -1921,7 +1922,7 @@ addHook("MobjDamage", function(target, inf, src, dmg, dmgType)
 
     -- world damage (no inf, no src)
     if not inf and not src then
-        local baseDamage = ((dmgType and not damageTypeMaps[dmgType]) and dmg) or 15
+        local baseDamage = ((dmgType and not damageTypeMaps[dmgType]) and dmg) or 10
         local baseType     = damageTypeMaps[dmgType & ~DMG_CANHURTSELF] or damageTypeMaps[dmgType] or dmgType
 		S_StartSound(target, P_RandomRange(sfx_frpai1, sfx_frpai5))
         DoDamageAndBursts(target, nil, baseDamage, baseType)
@@ -1954,6 +1955,7 @@ addHook("MobjDamage", function(target, inf, src, dmg, dmgType)
 
 	-- Final damage resolution:
 	local finalDamage
+	local finalType
 	local dontDoInvuln
 
     if targetIsDoomguy then
@@ -2005,7 +2007,7 @@ addHook("MobjDamage", function(target, inf, src, dmg, dmgType)
     end
 
 	-- Pick damage type from stats or fallback to hardcoded damage map
-	local finalType =
+	finalType = $ or
 		(HL1_DMGStats[chosenInf.type] and HL1_DMGStats[chosenInf.type].damagetype)
 		or damageTypeMaps[dmgType & ~DMG_CANHURTSELF]
 		or dmgType

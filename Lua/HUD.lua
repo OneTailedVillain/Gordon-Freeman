@@ -769,7 +769,7 @@ hud.add(function(v, player)
 				drawflags|V_SNAPTOTOP|V_SNAPTOLEFT|V_20TRANS, previewColor)
 
 			-- draw railring modifier only if the weapon at this slot/index has railring enabled
-			if railring[d] then
+			if railring[d] and (player.hl.rsr and player.hl.rsr.railring or 0) then
 				v.drawScaled(drawx, 2 * FRACUNIT + (d * 12 * FRACUNIT), FRACUNIT / 2,
 					cachePatch(v, "RAILRINGMODIFIERBUCKET"),
 					drawflags|V_SNAPTOTOP|V_SNAPTOLEFT|V_20TRANS, previewColor)
@@ -819,7 +819,7 @@ hud.add(function(v, player)
 				drawflags|V_SNAPTOTOP|V_SNAPTOLEFT|V_20TRANS, colormap)
 		end
 
-		if railring then
+		if railring and (player.hl.rsr and player.hl.rsr.railring or 0) then
 			v.drawScaled(weaponXPos + 2 * FRACUNIT / 2,
 				weaponYPos + 7 * FRACUNIT / 2,
 				FRACUNIT / 2, cachePatch(v, "RAILRINGMODIFIERBUCKET"),

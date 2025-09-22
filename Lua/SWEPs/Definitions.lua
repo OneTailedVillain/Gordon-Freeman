@@ -570,14 +570,13 @@ rawset(_G, "kombiHL1SpecialHandlers", {
 			if not vplayer then return end
 			if RSR and RSR.GamemodeActive() then
 				tmthing.rsrRealDamage = true
-				local killicon = tmthing and ((tmthing.stats and tmthing.stats.killicon)
-							 or (tmthing.wepstats and tmthing.wepstats.killicon))
-							 or "HLKILLGENER"
+				local killicon = tmthing and ((tmthing.stats and tmthing.stats.rsrkillicon)
+							 or (tmthing.wepstats and tmthing.wepstats.rsrkillicon))
+							 or "HLKILLGENERRSR"
 
-				if killicon == "HLKILLGENER" and ((dmgType or 0) & HL.DMG.CRUSH) then
-					killicon = "HLKILLCRUSH"
+				if killicon == "HLKILLGENERRSR" and ((dmgType or 0) & HL.DMG.CRUSH) then
+					killicon = "HLKILLCRUSHRSR"
 				end
-				killicon = $.."RSR"
 				RSR.KILLFEED_MOBJ_TO_ICON[tmthing.type] = killicon
 
 				P_DamageMobj(thing, tmthing, tmthing and tmthing.target or tmthing, dmg, dmgType)
@@ -1257,6 +1256,13 @@ function HLItems.Add(name, item)
 	-- set up fallback
 	setmetatable(item, { __index = base })
 
+	-- default rsrkillicon -> killicon if missing
+	if prefix == "weapon_" then
+		if not item.rsrkillicon then
+			item.rsrkillicon = item.killicon
+		end
+	end
+
 	-- now register it
 	local itemtype = prefix:sub(0, #prefix-1)
 	if itemtype == "v" then
@@ -1268,6 +1274,7 @@ function HLItems.Add(name, item)
 	HLItems[name] = item
 	HL.cacheShit[itemtype .. "s"] = $ or {}
 	HL.cacheShit[itemtype .. "s"][name] = true -- add string name to cache so we don't have to do much indexing (and it helps us NOT have to make a check to build a cache everytime we wanna do something)
+	-- Hack!! But it works and we run this once anyway
 	print(itemtypecapital .. itemtypelower .. " " .. name .. " successfully registered.")
 end
 

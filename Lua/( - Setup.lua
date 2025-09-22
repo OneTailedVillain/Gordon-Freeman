@@ -1039,14 +1039,19 @@ end
 
 rawset(_G, "HL_IsAlly", function(player1, player2, useff)
 	-- Hangout hack because I can't be bothered to figure out how the ringslinger convar interacts with shit
-	if getHangout() and not (ff.value and useff) then return false end
+	if (ff.value and useff) then return false end
 
 	-- you are not your own ally (1984.gif)
 	if player1 == player2 or (ff.value and useff) then return false end
+
+	if (gametyperules & GTR_FRIENDLY) then
+		return true
+	end
+
 	if G_GametypeHasTeams()
 		return player1.ctfteam == player2.ctfteam
 	else // Everyone is an ally, or everyone is a foe!
-		return not (gametyperules & GTR_RINGSLINGER)--G_RingSlingerGametype()
+		return not G_RingSlingerGametype()
 	end
 end)
 

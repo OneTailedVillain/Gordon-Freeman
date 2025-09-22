@@ -82,9 +82,15 @@ addHook("MobjDeath", function(mobj, inflictor, source, damageType)
 	MT_FREEMDEATHCAM)
 	mobj.hl.attackDir = {}
 	local attackDir = mobj.hl.attackDir
-	attackDir.x = inflictor.x - mobj.x
-	attackDir.y = inflictor.y - mobj.y
-	attackDir.z = inflictor.z - mobj.z
+	if inflictor then
+		attackDir.x = inflictor.x - mobj.x
+		attackDir.y = inflictor.y - mobj.y
+		attackDir.z = inflictor.z - mobj.z
+	else
+		attackDir.x = FRACUNIT
+		attackDir.y = 0
+		attackDir.z = 0
+	end
 	mobj.player.awayviewaiming = mobj.player.aiming
 	mobj.player.viewrollangle = ANGLE_90-ANG10
 	mobj.state = S_INVISIBLE

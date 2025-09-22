@@ -55,20 +55,24 @@ local function CheckAddons()
 			noweapons = true,
 			nodamage = true,
 			noenemydamage = true,
-			hudmodname = "a"
+			meleeicon = "HLKILLGENERRSR",
+			hudmodname = ""
 		}
+
 		HL.matchRingDefs[MT_RSR_PICKUP_BASIC] = {
 			weights={ handgun=100 },
 			defs = {
 				handgun = { ammo={ type={"ammo_9mm"}, give={HL.PickupGifts["9mmhandgun"]} } },
 			}
 		}
+
 		HL.matchRingDefs[MT_RSR_PICKUP_AUTO] = {
 			weights={ handgun=100 },
 			defs = {
 				handgun = { ammo={ type={"ammo_9mm"}, give={HL.PickupGifts["mp5"].primary} } },
 			}
 		}
+
 		HL.matchRingDefs[MT_RSR_PICKUP_BOMB] = {
 			weights={ satchel=35, crossbow=35, handgrenade=15, mp5 = 15 },
 				defs = {
@@ -78,30 +82,62 @@ local function CheckAddons()
 				mp5         = { ammo={ type={"ammo_argrenade"}, give={HL.PickupGifts["mp5"].secondary} } },
 			}
 		}
+
+		HL.matchRingDefs[MT_RSR_PICKUP_BOUNCE] = {
+			weights={ handgrenade=60, satchel=40 },
+			defs = {
+				handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+				satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
+			}
+		}
+
+		HL.matchRingDefs[MT_RSR_PICKUP_SCATTER] = {
+			weights={ shotgun=100 },
+			defs = {
+				shotgun = { ammo={ type={"ammo_buckshot"}, give={HL.PickupGifts["shotgun"]} } },
+			}
+		}
+
+		HL.matchRingDefs[MT_RSR_PICKUP_GRENADE] = {
+			weights={ handgrenade=30, satchel=40, mp5 = 30 },
+			defs = {
+				handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+				satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
+				mp5         = { ammo={ type={"ammo_argrenade"}, give={HL.PickupGifts["mp5"].secondary} } },
+			}
+		}
+
+		HL.matchRingDefs[MT_RSR_PICKUP_HOMING] = {
+			weights={ ["357"]=50, crossbow=50},
+			defs = {
+				["357"] = { ammo={ type={"ammo_357"}, give={HL.PickupGifts["357"]} } },
+				crossbow = { ammo={ type={"ammo_bolt"}, give={HL.PickupGifts["crossbow"]} } },
+			}
+		}
 	end
 	if DoomGuy
 		-- DOOM:
-		HL_CreateItem(safeGetMT(MT_ITEM_STIMPACK), {health = {give = 10}})
-		HL_CreateItem(safeGetMT(MT_ITEM_HEALTHPACK), {health = {give = 25}})
-		HL_CreateItem(safeGetMT(MT_ITEM_COMBAT_ARMOR), {armor = {set = "limit", maxmult = FRACUNIT*2, novox = true}})
-		HL_CreateItem(safeGetMT(MT_ITEM_SECURITY_ARMOR), {armor = {set = "limit", maxmult = FRACUNIT, novox = true}})
-		HL_CreateItem(safeGetMT(MT_POWERUP_BERSERK), {berserk = INT32_MAX})
-		HL_CreateItem(safeGetMT(MT_POWERUP_BACKPACK), {ammo = {type = {"bull","shel","rckt","cell"}, give = {10,4,1,20}}, doubleammo = true})
-		HL_CreateItem(safeGetMT(MT_ITEM_HEALTH), {health = {give = 1, maxmult = FRACUNIT*2}})
-		HL_CreateItem(safeGetMT(MT_ITEM_ARMOR), {armor = {give = 1, maxmult = FRACUNIT*2}})
-		HL_CreateItem(safeGetMT(MT_AMMO_CLIP), {ammo = {type = "bull", give = 10}})
-		HL_CreateItem(safeGetMT(MT_AMMO_CLIP_BOX), {ammo = {type = "bull", give = 50}})
-		HL_CreateItem(safeGetMT(MT_AMMO_SHELL), {ammo = {type = "shel", give = 4}})
-		HL_CreateItem(safeGetMT(MT_AMMO_SHELL_BOX), {ammo = {type = "shel", give = 20}})
-		HL_CreateItem(safeGetMT(MT_AMMO_ROCKET), {ammo = {type = "rckt", give = 1}})
-		HL_CreateItem(safeGetMT(MT_AMMO_ROCKET_BOX), {ammo = {type = "rckt", give = 5}})
-		HL_CreateItem(safeGetMT(MT_AMMO_CELL), {ammo = {type = "cell", give = 20}})
-		HL_CreateItem(safeGetMT(MT_AMMO_CELL_PACK), {ammo = {type = "cell", give = 200}})
-		HL_CreateItem(safeGetMT(MT_WEAPON_CHAINSAW), {weapon = "weapon_doom_chainsaw"})
-		HL_CreateItem(safeGetMT(MT_WEAPON_PISTOL), {weapon = "weapon_doom_pistol"})
-		HL_CreateItem(safeGetMT(MT_WEAPON_SHOTGUN), {weapon = "weapon_doom_shotgun"})
-		HL_CreateItem(safeGetMT(MT_WEAPON_CHAINGUN), {weapon = "weapon_doom_chaingun"})
-		if DOOMPREFS_ALWAYSRUN then
+		if not POWERS_TURBO then
+			HL_CreateItem(safeGetMT(MT_ITEM_STIMPACK), {health = {give = 10}})
+			HL_CreateItem(safeGetMT(MT_ITEM_HEALTHPACK), {health = {give = 25}})
+			HL_CreateItem(safeGetMT(MT_ITEM_COMBAT_ARMOR), {armor = {set = "limit", maxmult = FRACUNIT*2, novox = true}})
+			HL_CreateItem(safeGetMT(MT_ITEM_SECURITY_ARMOR), {armor = {set = "limit", maxmult = FRACUNIT, novox = true}})
+			HL_CreateItem(safeGetMT(MT_POWERUP_BERSERK), {berserk = INT32_MAX})
+			HL_CreateItem(safeGetMT(MT_ITEM_BACKPACK), {ammo = {type = {"bull","shel","rckt","cell"}, give = {10,4,1,20}}, doubleammo = true})
+			HL_CreateItem(safeGetMT(MT_ITEM_HEALTH_BONUS), {health = {give = 1, maxmult = FRACUNIT*2}})
+			HL_CreateItem(safeGetMT(MT_ITEM_ARMOR_BONUS), {armor = {give = 1, maxmult = FRACUNIT*2}})
+			HL_CreateItem(safeGetMT(MT_AMMO_CLIP), {ammo = {type = "bull", give = 10}})
+			HL_CreateItem(safeGetMT(MT_AMMO_CLIP_BOX), {ammo = {type = "bull", give = 50}})
+			HL_CreateItem(safeGetMT(MT_AMMO_SHELL), {ammo = {type = "shel", give = 4}})
+			HL_CreateItem(safeGetMT(MT_AMMO_SHELL_BOX), {ammo = {type = "shel", give = 20}})
+			HL_CreateItem(safeGetMT(MT_AMMO_ROCKET), {ammo = {type = "rckt", give = 1}})
+			HL_CreateItem(safeGetMT(MT_AMMO_ROCKET_BOX), {ammo = {type = "rckt", give = 5}})
+			HL_CreateItem(safeGetMT(MT_AMMO_CELL), {ammo = {type = "cell", give = 20}})
+			HL_CreateItem(safeGetMT(MT_AMMO_CELL_PACK), {ammo = {type = "cell", give = 200}})
+			HL_CreateItem(safeGetMT(MT_WEAPON_CHAINSAW), {weapon = "weapon_doom_chainsaw"})
+			HL_CreateItem(safeGetMT(MT_WEAPON_PISTOL), {weapon = "weapon_doom_pistol"})
+			HL_CreateItem(safeGetMT(MT_WEAPON_SHOTGUN), {weapon = "weapon_doom_shotgun"})
+			HL_CreateItem(safeGetMT(MT_WEAPON_CHAINGUN), {weapon = "weapon_doom_chaingun"})
 			HL_CreateItem(safeGetMT(MT_ITEM_SOUL_SPHERE), {health = {give = "maxhp", maxmult = FRACUNIT*2}})
 			HL_CreateItem(safeGetMT(MT_ITEM_MEGA_SPHERE), {health = {give = "limit", maxmult = FRACUNIT*2}, armor = {give = "limit", maxmult = FRACUNIT*2, novox = true}})
 			HL_CreateItem(safeGetMT(MT_ITEM_INVULNERABILITY_SPHERE), {invuln = {set = 20*TICRATE}})
@@ -110,13 +146,43 @@ local function CheckAddons()
 			HL_CreateItem(safeGetMT(MT_WEAPON_PLASMA_RIFLE), {weapon = "weapon_doom_plasma_rifle"})
 			HL_CreateItem(safeGetMT(MT_WEAPON_BFG9000), {weapon = "weapon_doom_bfg9000"})
 		else
-			HL_CreateItem(safeGetMT(MT_ITEM_SOUL), {health = {give = "maxhp", maxmult = FRACUNIT*2}})
-			HL_CreateItem(safeGetMT(MT_ITEM_MEGA), {health = {give = "limit", maxmult = FRACUNIT*2}, armor = {give = "limit", maxmult = FRACUNIT*2, novox = true}})
-			HL_CreateItem(safeGetMT(MT_ITEM_INVULNERABILITY), {invuln = {set = 20*TICRATE}})
-			HL_CreateItem(safeGetMT(MT_WEAPON_SUPERSHOTGUN), {weapon = "weapon_doom_supershotgun"})
-			HL_CreateItem(safeGetMT(MT_WEAPON_ROCKETLAUNCHER), {weapon = "weapon_doom_rpg"})
-			HL_CreateItem(safeGetMT(MT_WEAPON_PLASMARIFLE), {weapon = "weapon_doom_plasma_rifle"})
-			HL_CreateItem(safeGetMT(MT_WEAPON_BFG9000), {weapon = "weapon_doom_bfg9000"})
+			HL_CreateItem(safeGetMT(MT_ITEM_STIMPACK), {health = {give = 10}})
+			HL_CreateItem(safeGetMT(MT_ITEM_HEALTHPACK), {health = {give = 25}})
+			HL_CreateItem(safeGetMT(MT_ITEM_COMBAT_ARMOR), {armor = {set = "limit", maxmult = FRACUNIT*2, novox = true}})
+			HL_CreateItem(safeGetMT(MT_ITEM_SECURITY_ARMOR), {armor = {set = "limit", maxmult = FRACUNIT, novox = true}})
+			HL_CreateItem(safeGetMT(MT_POWERUP_BERSERK), {berserk = INT32_MAX})
+			HL_CreateItem(safeGetMT(MT_POWERUP_BACKPACK), {ammo = {type = {"bull","shel","rckt","cell"}, give = {10,4,1,20}}, doubleammo = true})
+			HL_CreateItem(safeGetMT(MT_ITEM_HEALTH), {health = {give = 1, maxmult = FRACUNIT*2}})
+			HL_CreateItem(safeGetMT(MT_ITEM_ARMOR), {armor = {give = 1, maxmult = FRACUNIT*2}})
+			HL_CreateItem(safeGetMT(MT_AMMO_CLIP), {ammo = {type = "bull", give = 10}})
+			HL_CreateItem(safeGetMT(MT_AMMO_CLIP_BOX), {ammo = {type = "bull", give = 50}})
+			HL_CreateItem(safeGetMT(MT_AMMO_SHELL), {ammo = {type = "shel", give = 4}})
+			HL_CreateItem(safeGetMT(MT_AMMO_SHELL_BOX), {ammo = {type = "shel", give = 20}})
+			HL_CreateItem(safeGetMT(MT_AMMO_ROCKET), {ammo = {type = "rckt", give = 1}})
+			HL_CreateItem(safeGetMT(MT_AMMO_ROCKET_BOX), {ammo = {type = "rckt", give = 5}})
+			HL_CreateItem(safeGetMT(MT_AMMO_CELL), {ammo = {type = "cell", give = 20}})
+			HL_CreateItem(safeGetMT(MT_AMMO_CELL_PACK), {ammo = {type = "cell", give = 200}})
+			HL_CreateItem(safeGetMT(MT_WEAPON_CHAINSAW), {weapon = "weapon_doom_chainsaw"})
+			HL_CreateItem(safeGetMT(MT_WEAPON_PISTOL), {weapon = "weapon_doom_pistol"})
+			HL_CreateItem(safeGetMT(MT_WEAPON_SHOTGUN), {weapon = "weapon_doom_shotgun"})
+			HL_CreateItem(safeGetMT(MT_WEAPON_CHAINGUN), {weapon = "weapon_doom_chaingun"})
+			if DOOMPREFS_ALWAYSRUN then
+				HL_CreateItem(safeGetMT(MT_ITEM_SOUL_SPHERE), {health = {give = "maxhp", maxmult = FRACUNIT*2}})
+				HL_CreateItem(safeGetMT(MT_ITEM_MEGA_SPHERE), {health = {give = "limit", maxmult = FRACUNIT*2}, armor = {give = "limit", maxmult = FRACUNIT*2, novox = true}})
+				HL_CreateItem(safeGetMT(MT_ITEM_INVULNERABILITY_SPHERE), {invuln = {set = 20*TICRATE}})
+				HL_CreateItem(safeGetMT(MT_WEAPON_SUPER_SHOTGUN), {weapon = "weapon_doom_supershotgun"})
+				HL_CreateItem(safeGetMT(MT_WEAPON_ROCKET_LAUNCHER), {weapon = "weapon_doom_rpg"})
+				HL_CreateItem(safeGetMT(MT_WEAPON_PLASMA_RIFLE), {weapon = "weapon_doom_plasma_rifle"})
+				HL_CreateItem(safeGetMT(MT_WEAPON_BFG9000), {weapon = "weapon_doom_bfg9000"})
+			else
+				HL_CreateItem(safeGetMT(MT_ITEM_SOUL), {health = {give = "maxhp", maxmult = FRACUNIT*2}})
+				HL_CreateItem(safeGetMT(MT_ITEM_MEGA), {health = {give = "limit", maxmult = FRACUNIT*2}, armor = {give = "limit", maxmult = FRACUNIT*2, novox = true}})
+				HL_CreateItem(safeGetMT(MT_ITEM_INVULNERABILITY), {invuln = {set = 20*TICRATE}})
+				HL_CreateItem(safeGetMT(MT_WEAPON_SUPERSHOTGUN), {weapon = "weapon_doom_supershotgun"})
+				HL_CreateItem(safeGetMT(MT_WEAPON_ROCKETLAUNCHER), {weapon = "weapon_doom_rpg"})
+				HL_CreateItem(safeGetMT(MT_WEAPON_PLASMARIFLE), {weapon = "weapon_doom_plasma_rifle"})
+				HL_CreateItem(safeGetMT(MT_WEAPON_BFG9000), {weapon = "weapon_doom_bfg9000"})
+			end
 		end
 		HLItems.Add("weapon_doom_chainsaw", {
 			viewmodel = "doom_chainsaw",
@@ -344,7 +410,7 @@ local function CheckAddons()
 			},
 			realname = "BFG9000",
 		})
-		if DOOMPREFS_ALWAYSRUN then
+		if DOOMPREFS_ALWAYSRUN or not POWERS_TURBO then
 			HLItems.ammo_rckt.shootmobj = MT_DOOM_ROCKET
 			HLItems.ammo_cell.shootmobj = MT_DOOM_PLASMA
 		else

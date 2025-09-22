@@ -38,6 +38,7 @@ local function SpawnRandomGibs(victim, cGibs, human, skull)
 		-- Frame 0 is reserved for the head gib. Don't pick that one
         gib.frame = not skull and P_RandomRange(1, HL.GIB_FRAMES - 1) or 0
 		gib.scale = $ / 2
+		gib.fuse = 30*TICRATE
 
         -- Set random position within victim's bounds
         do
