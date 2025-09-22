@@ -111,104 +111,100 @@ HLItems.Add("weapon_9mmhandgun", {
 
 HLItems.Add("weapon_357", {
     viewmodel = "357-",
-    		crosshair = "XHR357",
-    		selectgraphic = "HL1HUD357",
-    		autoswitchweight = 15,
-    		weaponslot = 2,
-    		priority = 2,
-    		killicon = "HLKILL357",
-    		primary = {
-    			ammo = "ammo_357",
-    			israycaster = true,
-    			clipsize = 6,
-    			pickupgift = 6,
-    			shotcost = 1,
-    			damage = 50,
-    			horizspread = 0,
-    			vertspread = 0,
-    			kickback = 7*FRACUNIT,
-    			firesound = sfx_hl3571,
-    			firesounds = 2,
-    			firedelay = 26,
-    		},
-    		secondary = {
-    			firefunc = function()
-    				return true
-    			end
-    		},
-    		autoreload = true,
-    		altfire = true,
-    		secondary = {
-    			firefunc = function(player, mystats)
-    				if multiplayer then
-    					player.hl.zoomed = not $
-    				end
-    				return true
-    			end,
-    			firedelay = 18,
-    		},
-    		altusesprimaryclip = true,
-    		globalfiredelay = {
-    			ready = 18,
-    			reload = 92
-    		},
-    		substitutes = {
-    			doomguy = "supershotgun",
-    			duke = 2,
-    			bj = 2,
-    			other = "railring"
-    		},
-    		realname = ".357",
+    crosshair = "XHR357",
+    selectgraphic = "HL1HUD357",
+    autoswitchweight = 15,
+    weaponslot = 2,
+    priority = 2,
+    killicon = "HLKILL357",
+	rsrrailring = true,
+    primary = {
+    	ammo = "ammo_357",
+    	israycaster = true,
+    	clipsize = 6,
+    	pickupgift = 6,
+    	shotcost = 1,
+    	damage = 50,
+    	horizspread = 0,
+    	vertspread = 0,
+    	kickback = 7*FRACUNIT,
+    	firesound = sfx_hl3571,
+    	firesounds = 2,
+    	firedelay = 26,
+    },
+    autoreload = true,
+    altfire = true,
+    secondary = {
+    	firefunc = function(player, mystats)
+    		if multiplayer then
+    			player.hl.zoomed = not $
+    		end
+    		return true
+    	end,
+    	firedelay = 18,
+		altusesprimaryclip = true,
+    },
+    globalfiredelay = {
+    	ready = 18,
+    	reload = 92
+    },
+    substitutes = {
+    	doomguy = "supershotgun",
+    	duke = 2,
+    	bj = 2,
+    	other = "railring"
+    },
+    realname = ".357",
 })
 
 HLItems.Add("weapon_mp5", {
     viewmodel = "MP5-",
-    		crosshair = "XHR9MM",
-    		selectgraphic = "HL1HUDMP5",
-    		autoswitchweight = 15,
-    		weaponslot = 3,
-    		priority = 1,
-    		killicon = "HLKILLMP5",
-    		nounderwater = true,
-    		primary = {
-    			pickupgift = 25,
-    			ammo = "ammo_9mm",
-    			israycaster = true,
-    			clipsize = 50,
-    			shotcost = 1,
-    			damage = 8,
-    			horizspread = 4*FRACUNIT,
-    			vertspread = 4*FRACUNIT,
-    			kickback = 1*FRACUNIT,
-    			kickbackcanflip = true,
-    			firesound = sfx_hl1ar1,
-    			firesounds = 3,
-    			firedelay = 4,
-    		},
-    		secondary = {
-    			pickupgift = 2,
-    			noreserveammo = true,
-    			ammo = "ammo_argrenade",
-    			killicon = "HLKILLGRENADEAR",
-    			clipsize = WEAPON_NONE,
-    			shotcost = 1,
-    			kickback = 10*FRACUNIT,
-    			firesound = sfx_hlarg1,
-    			explosionradius = 192*FRACUNIT,
-    			firesounds = 2,
-    			firedelay = 20,
-    		},
-    		globalfiredelay = {
-    			ready = 12,
-    			reload = 53
-    		},
-    		substitutes = {
-    			doomguy = "chaingun",
-    			duke = 3,
-    			bj = 3,
-    			other = "automaticring"
-    		},
-    		realname = "MP5",
+    crosshair = "XHR9MM",
+    selectgraphic = "HL1HUDMP5",
+    autoswitchweight = 15,
+    weaponslot = 3,
+    priority = 1,
+    killicon = "HLKILLMP5",
+    nounderwater = true,
+    primary = {
+    	pickupgift = 25,
+    	ammo = "ammo_9mm",
+    	israycaster = true,
+    	clipsize = 50,
+    	shotcost = 1,
+    	damage = 8,
+    	horizspread = 4*FRACUNIT,
+    	vertspread = 4*FRACUNIT,
+    	kickback = 1*FRACUNIT,
+    	kickbackcanflip = true,
+    	firesound = sfx_hl1ar1,
+    	firesounds = 3,
+    	firedelay = 4,
+    },
+    secondary = {
+    	pickupgift = 2,
+    	noreserveammo = true,
+    	ammo = "ammo_argrenade",
+    	killicon = "HLKILLGRENADEAR",
+    	clipsize = WEAPON_NONE,
+    	shotcost = 1,
+    	kickback = 10*FRACUNIT,
+    	firesound = sfx_hlarg1,
+    	explosionradius = 192*FRACUNIT,
+    	firesounds = 2,
+		firedelay = 20,
+    },
+    globalfiredelay = {
+    	ready = 12,
+    	reload = 53
+    },
+    substitutes = {
+    	doomguy = "chaingun",
+    	duke = 3,
+    	bj = 3,
+    	other = "automaticring"
+    },
+    realname = "MP5",
 })
 
 HLItems.Add("weapon_shotgun", {

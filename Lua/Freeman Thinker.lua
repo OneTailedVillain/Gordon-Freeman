@@ -1037,6 +1037,7 @@ local RECHARGE_RATE = FRACUNIT / 7
 local MAX_BATTERY = 100 * FRACUNIT
 
 COM_AddCommand("hl_loadspray", function(player, color, spray)
+	player.hl = $ or {}
 	player.hl.spray = {}
 	player.hl.spray.spray = spray
 	player.hl.spray.color = color
@@ -1054,6 +1055,7 @@ HL.defaultConfig = {
 }
 
 COM_AddCommand("hl_loadconfigkey", function(player, key, val)
+	player.hl = $ or {}
 	player.hl.config = $ or {}
 	local key = stripOuterQuotes(key)
 	local val = stripOuterQuotes(val)
@@ -1223,6 +1225,14 @@ addHook("PlayerSpawn",function(player)
 			twoxammo = false,
 			curwep   = "weapon_9mmhandgun",
 		},
+		rsrdeathmatch = {
+			ammo     = { ammo_9mm = 68, ammo_melee = -1, ammo_none = -1 },
+			clips    = {},
+			weapons  = { weapon_crowbar = true, weapon_9mmhandgun = true, weapon_357 = true, weapon_mp5 = true, weapon_shotgun = true, weapon_crossbow = true, weapon_handgrenade = true, weapon_satchel = true },
+			suit     = true,
+			twoxammo = false,
+			curwep   = "weapon_9mmhandgun",
+		},
 	}
 
 	-- pick which preset we need
@@ -1233,6 +1243,8 @@ addHook("PlayerSpawn",function(player)
 		mode = "doom"
 	elseif not cv_deathmatch.value then
 		mode = "campaign"
+	elseif HL_IsRSRGametype() then
+		mode = "rsrdeathmatch"
 	else
 		mode = "deathmatch"
 	end
@@ -1261,6 +1273,8 @@ addHook("PlayerSpawn",function(player)
 	player.hl.curwep         = choose("curwep")
 	player.hl1doubleammo     = choose("twoxammo")
 	player.hlinv.longjump    = choose("longjump")
+	player.hl.rsr = $ or {}
+	player.hl.rsr.railring = 0
 
 	if not (player.hl.curwep and player.hlinv.wepclips[player.hl.curwep]) then
 		local clipsize = HLItems[player.hl.curwep].primary and HLItems[player.hl.curwep].primary.clipsize or -1
@@ -1295,7 +1309,7 @@ end)
 addHook("PlayerSpawn",function(player)
 	if player != consoleplayer then return end
 	doConfigShit(player)
-	if not player.hl.config or not player.hl.config.fangnag then
+	if not player.hl or not player.hl.config or not player.hl.config.fangnag then
 		table.insert(player.hl.messages, convertToHLMessage(player, "CCHARNAG"))
 	end
 end)
@@ -1517,6 +1531,8 @@ addHook("PlayerThink", function(player)
 			info.time = $ - 1
 		end
 	end
+
+	player.hl = $ or {}
 
 	player.hl.messages = $ or {}
 	local messages = player.hl.messages
@@ -1961,6 +1977,7 @@ addHook("MobjDamage", function(target, inf, src, dmg, dmgType)
 			end
 		-- Player as inflictor (melee, Armageddon special-case)
 		elseif Valid(chosenInf.player) then
+			dontDoInvuln = false
 			if dmgType == DMG_NUKE and RSR.GetArmageddonDamage then
 				finalDamage = RSR.GetArmageddonDamage(target, chosenInf)
 			else
@@ -2115,7 +2132,7 @@ local function tickViewmodel(player)
 
     -- frame clock
     if player.hl1frameclock > 1 then
-        player.hl1frameclock = player.hl1frameclock - 1
+		player.hl1frameclock = $ - 1
         return
     end
 
@@ -2148,6 +2165,11 @@ local function tickViewmodel(player)
     else
         -- set clock for the current frame
         local dur = anim.denseDurations[player.hl1frame] or 1
+		if HL_IsRSRGametype()
+			and player.rsrinfo
+			and RSR.HasPowerup(player, RSR.POWERUP_SPEED) then
+			dur = $ / 2
+		end
         player.hl1frameclock = dur
     end
 end

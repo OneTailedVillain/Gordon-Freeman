@@ -513,12 +513,16 @@ hud.add(function(v, player)
 	local colormap  = getColormap(v, "COLORSCALECLR" .. (player.hl.cmap or player.mo.color))
 	local drawFlags = drawflags | V_SNAPTOBOTTOM | V_SNAPTORIGHT
 
+	local topY = 196 * FRACUNIT
+
 	-- Primary
 	local primary = shouldDraw("primary", player)
 	if primary.drawReserve then
+		topY = 180 * FRACUNIT
 		drawCount(v, xPosition, 196 * FRACUNIT, primary.reserveCnt, primary.ammostats, drawFlags, colormap)
 	end
 	if primary.drawClip then
+		topY = 180 * FRACUNIT
 		v.drawScaled(
 			xPosition - 32 * FRACUNIT,
 			184 * FRACUNIT,
@@ -540,10 +544,12 @@ hud.add(function(v, player)
 	-- Secondary (only if defined and not using primary clip exclusively)
 	if wpnStats.secondary and not wpnStats.secondary.altusesprimaryclip then
 		local secondary = shouldDraw("secondary", player)
-		if secondary.drawReserve then
+		if secondary.drawReserve and secondary.reserveCnt > 0 then
+			topY = 164 * FRACUNIT
 			drawCount(v, xPosition, 180 * FRACUNIT, secondary.reserveCnt, secondary.ammostats, drawFlags, colormap, true)
 		end
 		if secondary.drawClip then
+			topY = 164 * FRACUNIT
 			v.drawScaled(
 				xPosition - 32 * FRACUNIT,
 				168 * FRACUNIT,
@@ -562,6 +568,15 @@ hud.add(function(v, player)
 			)
 		end
 	end
+
+	if not wpnStats.rsrrailring then return end
+
+    local railAmmo = player.hl.rsr and player.hl.rsr.railring or 0
+
+	if not railAmmo then return end
+    local railStats = { icon = "RAILRINGMODIFIER" }
+
+    drawCount(v, xPosition, topY, railAmmo, railStats, drawFlags, colormap, false)
 end, "game")
 
 -- Crosshair
@@ -740,6 +755,7 @@ hud.add(function(v, player)
 
 		local count = weaponslots and weaponslots[i] or 0
 		local usable = (weaponslots.usable and weaponslots.usable[i]) or {}
+		local railring = (weaponslots.railring and weaponslots.railring[i]) or {}
 
 		for d = 1, count do
 			if player.hl.wepmenu.index ~= 0 and i == player.hl.wepmenu.category then break end
@@ -751,6 +767,13 @@ hud.add(function(v, player)
 			v.drawScaled(drawx, 2 * FRACUNIT + (d * 12 * FRACUNIT), FRACUNIT / 2,
 				cachePatch(v, "HUDSELBUCKETITEM"),
 				drawflags|V_SNAPTOTOP|V_SNAPTOLEFT|V_20TRANS, previewColor)
+
+			-- draw railring modifier only if the weapon at this slot/index has railring enabled
+			if railring[d] then
+				v.drawScaled(drawx, 2 * FRACUNIT + (d * 12 * FRACUNIT), FRACUNIT / 2,
+					cachePatch(v, "RAILRINGMODIFIERBUCKET"),
+					drawflags|V_SNAPTOTOP|V_SNAPTOLEFT|V_20TRANS, previewColor)
+			end
 		end
 	end
 
@@ -760,6 +783,7 @@ hud.add(function(v, player)
 	for i = 1, weaponamount do
 		local currentweapon = weaponlist[i].name
 		local usable = weaponlist[i].usable
+		local railring = weaponlist[i].railring
 		local wepproperties = HLItems[currentweapon]
 		local selectgraphic = wepproperties.selectgraphic or "HL1HUD9MM"
 		local ammostats = HLItems[ (wepproperties.primary and wepproperties.primary.ammo) or "9mm" ] or { max = 0 }
@@ -779,16 +803,26 @@ hud.add(function(v, player)
 			colormap = getColormap(v, "COLORSCALECLR" .. (player.hl.cmap or player.mo.color))
 		end
 
+		local weaponXPos = -10 * FRACUNIT + ((player.hl.wepmenu.category + 1) * 12 * FRACUNIT)
+		local weaponYPos = (14 * FRACUNIT) + ((49 * (i - 1)) * FRACUNIT / 2)
+
 		-- Draw Weapon Icon
-		v.drawScaled(-10 * FRACUNIT + ((player.hl.wepmenu.category + 1) * 12 * FRACUNIT),
-			(14 * FRACUNIT) + ((49 * (i - 1)) * FRACUNIT / 2),
+		v.drawScaled(weaponXPos,
+			weaponYPos,
 			FRACUNIT / 2, cachePatch(v, selectgraphic),
 			drawflags|V_SNAPTOTOP|V_SNAPTOLEFT|V_20TRANS, colormap)
 
 		if i == border then
-			v.drawScaled(-10 * FRACUNIT + ((player.hl.wepmenu.category + 1) * 12 * FRACUNIT),
-				(14 * FRACUNIT) + ((49 * (i - 1)) * FRACUNIT / 2),
+			v.drawScaled(weaponXPos,
+				weaponYPos,
 				FRACUNIT / 2, cachePatch(v, "HL1HUDWPNSEL"),
+				drawflags|V_SNAPTOTOP|V_SNAPTOLEFT|V_20TRANS, colormap)
+		end
+
+		if railring then
+			v.drawScaled(weaponXPos + 2 * FRACUNIT / 2,
+				weaponYPos + 7 * FRACUNIT / 2,
+				FRACUNIT / 2, cachePatch(v, "RAILRINGMODIFIERBUCKET"),
 				drawflags|V_SNAPTOTOP|V_SNAPTOLEFT|V_20TRANS, colormap)
 		end
 

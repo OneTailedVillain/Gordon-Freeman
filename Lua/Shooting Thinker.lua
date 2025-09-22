@@ -12,6 +12,7 @@ local kombilastseen
 local kombiseentime
 
 local function HL_GetBulletDamage(mobj, stats)
+	if mobj.target.player.hl.rsr.railring and mobj.wepstats.rsrrailring then return 1000 end
 	if stats.damagemin and stats.damagemax then
 		local max = stats.damagemax
 		local min = stats.damagemin
@@ -123,8 +124,8 @@ local function HL_FireProjectile(player, mystats, mode)
 	-- Check ammo/clip availability
 	if (clip < 1) and not mystats.neverdenyuse then
 		-- Dryfire prevention only applies if we're not already in delay
-		local delayed = (mode == "primary" and player.hl1weapondelay)
-					or (mode == "secondary" and player.weaponaltdelay)
+		local delayed = (mode == "primary" and player.hl1weapondelay > 0)
+					or (mode == "secondary" and player.weaponaltdelay > 0)
 
 		if not delayed then
 			S_StartSound(player.mo, sfx_hdryfi)
@@ -146,8 +147,8 @@ local function HL_FireProjectile(player, mystats, mode)
 	end
 
 	-- Prevent firing if there is an active weapon delay
-	if mode == "primary" and player.hl1weapondelay then return end
-	if mode == "secondary" and player.weaponaltdelay then return end
+	if mode == "primary" and player.hl1weapondelay > 0 then return end
+	if mode == "secondary" and player.weaponaltdelay > 0 then return end
 
 	-- Make sure we DON'T crash servers.
 	if curModeStats.parenttofirer and player.hl.objects and player.hl.objects[weaponID] then
@@ -234,6 +235,7 @@ local function HL_FireProjectile(player, mystats, mode)
 			theproj.stats = mystats
 			theproj.wepstats = HLItems[weaponID]
 			theproj.hl1damage = HL_GetBulletDamage(theproj, mystats)
+			theproj.hl = $ or {}
 			if HL.DoDoomguyAccomodations then
 				theproj.damage = theproj.hl1damage
 			end
@@ -296,7 +298,11 @@ local function HL_FireProjectile(player, mystats, mode)
 	end
 
 	-- Consume ammo
-	HL_DecrementWeaponAmmo(player, mode == "secondary")
+	if not (HL_IsRSRGametype()
+		and player.rsrinfo
+		and RSR.HasPowerup(player, RSR.POWERUP_INFINITY)) then
+		HL_DecrementWeaponAmmo(player, mode == "secondary")
+	end
 
 	-- Viewmodel animation and sound
 	local chosenOffset = player.firstVolleyDone and (mystats.refireoffset or mystats.fireoffset) or (mystats.fireoffset or 0)
@@ -405,8 +411,8 @@ local function FireWeapon(player, mode)
 	-- Use the viewmodel from the weapon whose stats we are using
 	local viewmodel = HLItems[HLItems[weaponID].viewmodel or "v_pistol"]
 
-	if mode == "primary" and player.hl1weapondelay then return end
-	if mode == "secondary" and player.weaponaltdelay then return end
+	if mode == "primary" and player.hl1weapondelay > 0 then return end
+	if mode == "secondary" and player.weaponaltdelay > 0 then return end
 
 	-- Run firing function, if available
 	local firefunc = mystats.firefunc
@@ -515,14 +521,22 @@ addHook("PlayerThink", function(player)
     end
 
 	-- Decrease weapon delay timers
-	if player.weaponaltdelay player.weaponaltdelay = $ - 1 end
-	if player.hl1weapondelay player.hl1weapondelay = $ - 1 end
+	local decrease = 1
+	if HL_IsRSRGametype()
+		and player.rsrinfo
+		and RSR.HasPowerup(player, RSR.POWERUP_SPEED) then
+		decrease = 2
+	end
+	player.weaponaltdelay = $ or 0
+	player.hl1weapondelay = $ or 0
+	if player.weaponaltdelay > 0 then player.weaponaltdelay = $ - decrease end
+	if player.hl1weapondelay > 0 then player.hl1weapondelay = $ - decrease end
 
 	-- Prevent Freeman from using vanilla firing mechanics
 	player.weapondelay = 2
 
 	-- Reset refire flag if the fire button is released
-	if not player.hl1weapondelay and not (player.cmd.buttons & fire) and player.refire
+	if player.hl1weapondelay <= 0 and not (player.cmd.buttons & fire) and player.refire
 		player.refire = false
 	end
 
@@ -546,6 +560,20 @@ addHook("PlayerThink", function(player)
 		elseif isAlt or player.volleymode == "secondary"
 			FireWeapon(player, "secondary")
 			player.hl.fireMode = "secondary"
+		end
+
+		if player.hl.fireMode == "primary" and player.hl.rsr and (player.hl.rsr.railring or 0) > 0 and not (player.hl and ((player.hl.holdyourfire and player.hl.fireMode == "primary") or player.hl.noshoot or player.hl1viewmdaction == "lower")) then
+			if (player.hlinv.wepclips[player.hl.curwep][player.hl.fireMode] or 0) > 0 then
+				for i = 0, 500 do
+					if (player.hlinv.wepclips[player.hl.curwep][player.hl.fireMode] or 0) <= 0 then break end
+					player.weaponaltdelay = 0
+					player.hl1weapondelay = 0
+					FireWeapon(player, player.hl.fireMode)
+					if i == 500 then print("Too many iterations!! What did you do?!") end
+				end 
+				player.hl.rsr.railring = ($ or 0) - 1
+			end
+			S_StartSound(player.mo, sfx_tfcrit)
 		end
 
 		-- Mark that fire input was active
@@ -740,64 +768,119 @@ return not (
 	or (player.playerstate ~= PST_LIVE)
 ) end
 
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    if orig_type ~= 'table' then
+        if orig_type == "boolean" then
+            return orig == true
+        else
+            return tonumber(orig) == nil and tostring(orig) or tonumber(orig)
+        end
+    end
+    local copy = {}
+    for k, v in next, orig, nil do
+        copy[deepcopy(k)] = deepcopy(v)
+    end
+    return copy
+end
+
 addHook("PreThinkFrame", function()
-	for player in players.iterate do
-		if not player.mo then continue end
-		if player.hl.punchangle and player.hl.punchangle.x then
-			player.cmd.aiming = player.cmd.aiming - player.hl.punchangle.x
-			player.aiming = (player.cmd.aiming - player.hl.punchangle.x)<<16
-		end
-		if player.mo.skin != "kombifreeman" then continue end
-		player.hl.friction = (player.mo.floorrover and player.mo.floorrover.sector and player.mo.floorrover.sector.friction) or player.mo.subsector.sector.friction
-		player.hl.cmap = skincolors[player.mo.color].ramp[7]
+    for player in players.iterate do
+        if not player.mo then continue end
+        
+        -- Store original aiming for all players (needed for proper netcode)
+        if not player.hl.original_aiming then
+            player.hl.original_aiming = player.cmd.aiming
+        end
+        
+        -- Only apply punchangle to the local player's view
+        if player.hl.punchangle and player.hl.punchangle.x then
+            if player == consoleplayer then
+                -- For local player: apply kickback to view
+                player.hl.original_aiming = player.cmd.aiming
+                player.cmd.aiming = $ - player.hl.punchangle.x
+                player.aiming = (player.cmd.aiming)<<16
+            else
+                -- For remote players: use original aiming without kickback
+                player.cmd.aiming = player.hl.original_aiming
+                player.aiming = (player.hl.original_aiming)<<16
+            end
+        end
+        
+        if player.mo.skin != "kombifreeman" then continue end
+        
+        player.hl.friction = (player.mo.floorrover and player.mo.floorrover.sector and player.mo.floorrover.sector.friction) or player.mo.subsector.sector.friction
+        player.hl.cmap = skincolors[player.mo.color].ramp[7]
 
-		local targetCrouch = HL_IsCrouching(player)
+        local targetCrouch = HL_IsCrouching(player)
 
-		if ((player.cmd.buttons & BT_JUMP) or (player.hlcmds and player.hlcmds.jump)) and P_IsObjectOnGround(player.mo) and playerHasControl(player) then
-			if targetCrouch and player.speed > HLToDoom(50*FRACUNIT) then
-				local longJumpSpeed = FixedMul(PLAYER_LONGJUMP_SPEED, FRACUNIT * 8 / 5)
-				if player.hlinv.longjump then
-					if player.hl.config.viewkick then
-						player.hl.punchangle.x = (ANG2 + ANG2 + ANG1) >> 16
-					end
-					P_InstaThrust(player.mo, player.mo.angle, FixedMul(player.cmd.forwardmove * FRACUNIT / 50, longJumpSpeed))
-					player.mo.momz = P_MobjFlip(player.mo) * FixedMul(FixedMul(FixedMul(FRACUNIT * 4, player.mo.scale), player.jumpfactor), FixedDiv(191*FRACUNIT, 180*FRACUNIT) * 2)
-					S_StartSound(player.mo, sfx_hl1ljm)
-					player.mo.state = S_PLAY_LONGJUMP
-					player.hl.ignorecrouchclock = 4
-				else
-					player.mo.momz = P_MobjFlip(player.mo) * FixedMul(FixedMul(FRACUNIT * 4, player.mo.scale), player.jumpfactor*2)
-					if not targetCrouch then
-						if player.mo.state != S_PLAY_LONGJUMP then
-							player.mo.state = S_PLAY_HLJUMP
-						end
-					elseif player.mo.state != S_PLAY_LONGJUMP
-						local moving = abs(player.mo.momx) > 0 or abs(player.mo.momy) > 0
-						player.mo.state = moving and S_PLAY_FREEMCROUCHMOVE or S_PLAY_FREEMCROUCH
-					end
-				end
-			else
-				L_MakeFootstep(player, "jump")
-				player.mo.momz = P_MobjFlip(player.mo) * FixedMul(FixedMul(FRACUNIT * 4, player.mo.scale), player.jumpfactor*2)
-				if not targetCrouch then
-					if player.mo.state != S_PLAY_LONGJUMP then
-						player.mo.state = S_PLAY_HLJUMP
-					end
-				elseif player.mo.state != S_PLAY_LONGJUMP
-					local moving = abs(player.mo.momx) > 0 or abs(player.mo.momy) > 0
-					player.mo.state = moving and S_PLAY_FREEMCROUCHMOVE or S_PLAY_FREEMCROUCH
-				end
-			end
-			player.cmd.buttons = $ & ~BT_JUMP
-		end
+        if ((player.cmd.buttons & BT_JUMP) or (player.hlcmds and player.hlcmds.jump)) and P_IsObjectOnGround(player.mo) and playerHasControl(player) then
+            if targetCrouch and player.speed > HLToDoom(50*FRACUNIT) then
+                local longJumpSpeed = FixedMul(PLAYER_LONGJUMP_SPEED, FRACUNIT * 8 / 5)
+                if player.hlinv.longjump then
+                    if player.hl.config.viewkick then
+                        -- Only apply punchangle locally to avoid desync
+                        if player == consoleplayer then
+                            player.hl.punchangle.x = (ANG2 + ANG2 + ANG1) >> 16
+                        end
+                    end
+                    P_InstaThrust(player.mo, player.mo.angle, FixedMul(player.cmd.forwardmove * FRACUNIT / 50, longJumpSpeed))
+                    player.mo.momz = P_MobjFlip(player.mo) * FixedMul(FixedMul(FixedMul(FRACUNIT * 4, player.mo.scale), player.jumpfactor), FixedDiv(191*FRACUNIT, 180*FRACUNIT) * 2)
+                    S_StartSound(player.mo, sfx_hl1ljm)
+                    player.mo.state = S_PLAY_LONGJUMP
+                    player.hl.ignorecrouchclock = 4
+                else
+                    player.mo.momz = P_MobjFlip(player.mo) * FixedMul(FixedMul(FRACUNIT * 4, player.mo.scale), player.jumpfactor*2)
+                    if not targetCrouch then
+                        if player.mo.state != S_PLAY_LONGJUMP then
+                            player.mo.state = S_PLAY_HLJUMP
+                        end
+                    elseif player.mo.state != S_PLAY_LONGJUMP
+                        local moving = abs(player.mo.momx) > 0 or abs(player.mo.momy) > 0
+                        player.mo.state = moving and S_PLAY_FREEMCROUCHMOVE or S_PLAY_FREEMCROUCH
+                    end
+                end
+            else
+                L_MakeFootstep(player, "jump")
+                player.mo.momz = P_MobjFlip(player.mo) * FixedMul(FixedMul(FRACUNIT * 4, player.mo.scale), player.jumpfactor*2)
+                if not targetCrouch then
+                    if player.mo.state != S_PLAY_LONGJUMP then
+                        player.mo.state = S_PLAY_HLJUMP
+                    end
+                elseif player.mo.state != S_PLAY_LONGJUMP
+                    local moving = abs(player.mo.momx) > 0 or abs(player.mo.momy) > 0
+                    player.mo.state = moving and S_PLAY_FREEMCROUCHMOVE or S_PLAY_FREEMCROUCH
+                end
+            end
+            player.cmd.buttons = $ & ~BT_JUMP
+        end
 
-		if player.hl.ignorecrouchclock then
-			player.hl.ignorecrouchclock = $ - 1
-		end
+        if player.hl.ignorecrouchclock then
+            player.hl.ignorecrouchclock = $ - 1
+        end
 
-		if not (player.hl.killcam and player.hl.killcam.valid) then continue end
-		player.hl.killcam.z = $ - (player.hl.killcam.height - 8 * player.hl.killcam.scale)
-	end
+        if not (player.hl.killcam and player.hl.killcam.valid) then continue end
+        player.hl.killcam.z = $ - (player.hl.killcam.height - 8 * player.hl.killcam.scale)
+    end
+end)
+
+addHook("PostThinkFrame", function()
+    for player in players.iterate do
+        if not player.mo continue end
+        
+        -- Restore original aiming for all players after processing
+        if player.hl.original_aiming then
+            player.cmd.aiming = player.hl.original_aiming
+            player.aiming = (player.hl.original_aiming)<<16
+            player.hl.original_aiming = nil
+        end
+        
+        if player.mo.skin != "kombifreeman" then continue end
+        player.bob = 0
+        player.deltaviewheight = 0
+        if not (player.hl.killcam and player.hl.killcam.valid) then continue end
+        player.hl.killcam.z = $ + (player.hl.killcam.height - 8 * player.hl.killcam.scale)
+    end
 end)
 
 local function FixedHypot3(x, y, z)
@@ -866,20 +949,6 @@ addHook("MobjThinker", HL_TheRaycastingAtHome, MT_HL1_TRIPMINE)
 addHook("MobjThinker", function(mobj)
 	mobj.info.activesound = sfx_hlgrn1 + leveltime%3
 end, MT_HL1_HANDGRENADE)
-
-addHook("PostThinkFrame", function()
-	for player in players.iterate do
-		if not player.mo continue end
-		if player.hl.punchangle.x
-			player.aiming = (player.cmd.aiming + player.hl.punchangle.x)<<16
-		end
-		if player.mo.skin != "kombifreeman" then continue end
-		player.bob = 0
-		player.deltaviewheight = 0
-		if not (player.hl.killcam and player.hl.killcam.valid) then continue end
-		player.hl.killcam.z = $ + (player.hl.killcam.height - 8 * player.hl.killcam.scale)
-	end
-end)
 
 -- DOOM Raise speed ~6 pixels
 addHook("SeenPlayer", function(player,splayer)

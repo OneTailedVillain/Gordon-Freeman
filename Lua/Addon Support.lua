@@ -50,11 +50,33 @@ local function CheckAddons()
 		HL_CreateItem(safeGetMT("MT_RSR_ARMOR_SMALL"), {armor = {give = 10}})
 		HL_CreateItem(safeGetMT("MT_RSR_ARMOR"), {armor = {give = 25}})
 		HL_CreateItem(safeGetMT("MT_RSR_ARMOR_BIG"), {armor = {give = 50}})
+		HL_CreateItem(safeGetMT("MT_RSR_PICKUP_RAIL"), {rsrrailring = 1})
 		RSR.SKIN_INFO["kombifreeman"] = {
 			noweapons = true,
 			nodamage = true,
 			noenemydamage = true,
-			hudmodname = ""
+			hudmodname = "a"
+		}
+		HL.matchRingDefs[MT_RSR_PICKUP_BASIC] = {
+			weights={ handgun=100 },
+			defs = {
+				handgun = { ammo={ type={"ammo_9mm"}, give={HL.PickupGifts["9mmhandgun"]} } },
+			}
+		}
+		HL.matchRingDefs[MT_RSR_PICKUP_AUTO] = {
+			weights={ handgun=100 },
+			defs = {
+				handgun = { ammo={ type={"ammo_9mm"}, give={HL.PickupGifts["mp5"].primary} } },
+			}
+		}
+		HL.matchRingDefs[MT_RSR_PICKUP_BOMB] = {
+			weights={ satchel=35, crossbow=35, handgrenade=15, mp5 = 15 },
+				defs = {
+				satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
+				crossbow    = { ammo={ type={"ammo_bolt"}, give={HL.PickupGifts["crossbow"]} } },
+				handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+				mp5         = { ammo={ type={"ammo_argrenade"}, give={HL.PickupGifts["mp5"].secondary} } },
+			}
 		}
 	end
 	if DoomGuy

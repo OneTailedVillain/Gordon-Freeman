@@ -577,6 +577,7 @@ rawset(_G, "kombiHL1SpecialHandlers", {
 				if killicon == "HLKILLGENER" and ((dmgType or 0) & HL.DMG.CRUSH) then
 					killicon = "HLKILLCRUSH"
 				end
+				killicon = $.."RSR"
 				RSR.KILLFEED_MOBJ_TO_ICON[tmthing.type] = killicon
 
 				P_DamageMobj(thing, tmthing, tmthing and tmthing.target or tmthing, dmg, dmgType)
@@ -738,7 +739,6 @@ rawset(_G, "HL_DamageGordon", function(thing, tmthing, dmg, dmgType)
 		if thing.hl.armor and not ((dmgType or 0) & (HL.DMG.DROWN | HL.DMG.DROWNRECOVER | HL.DMG.FALL))then
 			thing.hl.armor = $ - (2 * (hldamage * FRACUNIT) / 5)
 			thing.hl.health = $ - hldamage / 5 + min(thing.hl.armor / FRACUNIT, 0)
-			thing.hl.health = max($, 0)
 			thing.hl.armor = max($, 0)
 		else
 			thing.hl.health = ($ or 0) - hldamage
@@ -1199,6 +1199,7 @@ local baseWeapon = {
 	priority = INT32_MIN,
 	killicon = "HLKILL9MM",
 	nounderwater = false,
+	rsrrailring = false,
 	primary = {
 		ammo = "ammo_9mm",
 		israycaster = true,

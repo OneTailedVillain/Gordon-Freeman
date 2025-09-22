@@ -39,7 +39,7 @@ local function MergeStats(base, override)
 end
 
 -- pull pickupgift values from HLItems for convenience
-local PG = {
+HL.PickupGifts = {
   ["9mmhandgun"] = HLItems["weapon_9mmhandgun"].primary.pickupgift,
   ["357"]        = HLItems["weapon_357"].primary.pickupgift,
   ["mp5"]        = {
@@ -53,7 +53,7 @@ local PG = {
 }
 
 -- 1) Weapon panels
-local PanelPickupStats = {
+HL.PanelPickupStats = {
   [MT_AUTOPICKUP] = {
     weights = { mp5=100 },
     defs = {
@@ -78,13 +78,13 @@ local PanelPickupStats = {
       handgrenade = {
         ammo = {
           type={"ammo_grenade"},
-          give={PG["handgrenade"]},
+          give={HL.PickupGifts["handgrenade"]},
         }
       },
       satchel = {
         ammo = {
           type={"ammo_satchel"},
-          give={PG["satchel"]},
+          give={HL.PickupGifts["satchel"]},
         }
       },
     }
@@ -96,13 +96,13 @@ local PanelPickupStats = {
       handgrenade = {
         ammo = {
           type={"ammo_grenade"},
-          give={PG["handgrenade"]},
+          give={HL.PickupGifts["handgrenade"]},
         }
       },
       satchel = {
         ammo = {
           type={"ammo_satchel"},
-          give={PG["satchel"]},
+          give={HL.PickupGifts["satchel"]},
         }
       },
     }
@@ -114,13 +114,13 @@ local PanelPickupStats = {
       satchel = {
         ammo = {
           type={"ammo_satchel"},
-          give={PG["satchel"]},
+          give={HL.PickupGifts["satchel"]},
         }
       },
       handgrenade = {
         ammo = {
           type={"ammo_grenade"},
-          give={PG["handgrenade"]},
+          give={HL.PickupGifts["handgrenade"]},
         }
       },
       crossbow = {
@@ -148,7 +148,7 @@ local function PanelTouch(special, toucher)
 	if not (special.valid and toucher.valid) then return end
 	local player = toucher.player
 
-	local entry = PanelPickupStats[special.type]
+	local entry = HL.PanelPickupStats[special.type]
 	if not entry then return end
 
 	local choice   = WeightedPick(entry.weights)
@@ -173,118 +173,118 @@ addHook("TouchSpecial", PanelTouch, MT_RAILPICKUP)
 */
 
 -- 2) Ammo rings
-local AmmoPickupStats = {
+HL.AmmoPickupStats = {
   [MT_INFINITYRING] = {
     weights={ ["9mmhandgun"]=20, ["357"]=15, mp5=15, shotgun=15, crossbow=15, handgrenade=10, satchel=10 },
     defs = {
-      ["9mmhandgun"] = { ammo={ type={"ammo_9mm"}, give={PG["9mmhandgun"]} } },
-      ["357"]        = { ammo={ type={"ammo_357"}, give={PG["357"]} } },
-      mp5            = { ammo={ type={"ammo_9mm","ammo_argrenade"}, give={PG["mp5"].primary,PG["mp5"].secondary} } },
-      shotgun        = { ammo={ type={"ammo_shotgun"}, give={PG["shotgun"]} } },
-      crossbow       = { ammo={ type={"ammo_bolt"}, give={PG["crossbow"]} } },
-      handgrenade    = { ammo={ type={"ammo_grenade"}, give={PG["handgrenade"]} } },
-      satchel        = { ammo={ type={"ammo_satchel"}, give={PG["satchel"]} } },
+      ["9mmhandgun"] = { ammo={ type={"ammo_9mm"}, give={HL.PickupGifts["9mmhandgun"]} } },
+      ["357"]        = { ammo={ type={"ammo_357"}, give={HL.PickupGifts["357"]} } },
+      mp5            = { ammo={ type={"ammo_9mm","ammo_argrenade"}, give={HL.PickupGifts["mp5"].primary,HL.PickupGifts["mp5"].secondary} } },
+      shotgun        = { ammo={ type={"ammo_shotgun"}, give={HL.PickupGifts["shotgun"]} } },
+      crossbow       = { ammo={ type={"ammo_bolt"}, give={HL.PickupGifts["crossbow"]} } },
+      handgrenade    = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+      satchel        = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
     }
   },
   [MT_AUTOMATICRING] = {
     weights={ mp5=100 },
     defs = {
-      mp5 = { ammo={ type={"ammo_9mm"}, give={PG["mp5"].primary} } },
+      mp5 = { ammo={ type={"ammo_9mm"}, give={HL.PickupGifts["mp5"].primary} } },
     }
   },
   [MT_SCATTERRING] = {
     weights={ shotgun=100 },
     defs = {
-      shotgun = { ammo={ type={"ammo_buckshot"}, give={PG["shotgun"]} } },
+      shotgun = { ammo={ type={"ammo_buckshot"}, give={HL.PickupGifts["shotgun"]} } },
     }
   },
   [MT_BOUNCERING] = {
     weights={ handgrenade=60, satchel=40 },
     defs = {
-      handgrenade = { ammo={ type={"ammo_grenade"}, give={PG["handgrenade"]} } },
-      satchel     = { ammo={ type={"ammo_satchel"}, give={PG["satchel"]} } },
+      handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+      satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
     }
   },
   [MT_GRENADERING] = {
     weights={ handgrenade=30, satchel=40, mp5 = 30 },
     defs = {
-      handgrenade = { ammo={ type={"ammo_grenade"}, give={PG["handgrenade"]} } },
-      satchel     = { ammo={ type={"ammo_satchel"}, give={PG["satchel"]} } },
-      mp5         = { ammo={ type={"ammo_argrenade"}, give={PG["mp5"].secondary} } },
+      handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+      satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
+      mp5         = { ammo={ type={"ammo_argrenade"}, give={HL.PickupGifts["mp5"].secondary} } },
     }
   },
   [MT_EXPLOSIONRING] = {
     weights={ satchel=35, crossbow=35, handgrenade=15, mp5 = 15 },
     defs = {
-      satchel     = { ammo={ type={"ammo_satchel"}, give={PG["satchel"]} } },
-      crossbow    = { ammo={ type={"ammo_bolt"}, give={PG["crossbow"]} } },
-      handgrenade = { ammo={ type={"ammo_grenade"}, give={PG["handgrenade"]} } },
-      mp5         = { ammo={ type={"ammo_argrenade"}, give={PG["mp5"].secondary} } },
+      satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
+      crossbow    = { ammo={ type={"ammo_bolt"}, give={HL.PickupGifts["crossbow"]} } },
+      handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+      mp5         = { ammo={ type={"ammo_argrenade"}, give={HL.PickupGifts["mp5"].secondary} } },
     }
   },
   [MT_RAILRING] = {
     weights={ ["357"]=50, crossbow=50},
     defs = {
-      ["357"] = { ammo={ type={"ammo_357"}, give={PG["357"]} } },
-      crossbow = { ammo={ type={"ammo_bolt"}, give={PG["crossbow"]} } },
+      ["357"] = { ammo={ type={"ammo_357"}, give={HL.PickupGifts["357"]} } },
+      crossbow = { ammo={ type={"ammo_bolt"}, give={HL.PickupGifts["crossbow"]} } },
     }
   },
 }
 
-local matchRingDefs = {
+HL.matchRingDefs = {
   [MT_INFINITYRING] = {
     weights={ ["9mmhandgun"]=20, ["357"]=15, mp5=15, shotgun=15, crossbow=15, handgrenade=10, satchel=10 },
     defs = {
-      ["9mmhandgun"] = { ammo={ type={"ammo_9mm"}, give={PG["9mmhandgun"]} } },
-      ["357"]        = { ammo={ type={"ammo_357"}, give={PG["357"]} } },
-      mp5            = { ammo={ type={"ammo_9mm","ammo_argrenade"}, give={PG["mp5"].primary,PG["mp5"].secondary} } },
-      shotgun        = { ammo={ type={"ammo_shotgun"}, give={PG["shotgun"]} } },
-      crossbow       = { ammo={ type={"ammo_bolt"}, give={PG["crossbow"]} } },
-      handgrenade    = { ammo={ type={"ammo_grenade"}, give={PG["handgrenade"]} } },
-      satchel        = { ammo={ type={"ammo_satchel"}, give={PG["satchel"]} } },
+      ["9mmhandgun"] = { ammo={ type={"ammo_9mm"}, give={HL.PickupGifts["9mmhandgun"]} } },
+      ["357"]        = { ammo={ type={"ammo_357"}, give={HL.PickupGifts["357"]} } },
+      mp5            = { ammo={ type={"ammo_9mm","ammo_argrenade"}, give={HL.PickupGifts["mp5"].primary,HL.PickupGifts["mp5"].secondary} } },
+      shotgun        = { ammo={ type={"ammo_shotgun"}, give={HL.PickupGifts["shotgun"]} } },
+      crossbow       = { ammo={ type={"ammo_bolt"}, give={HL.PickupGifts["crossbow"]} } },
+      handgrenade    = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+      satchel        = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
     }
   },
   [MT_AUTOMATICRING] = {
     weights={ mp5=100 },
     defs = {
-      mp5 = { ammo={ type={"ammo_9mm"}, give={PG["mp5"].primary} } },
+      mp5 = { ammo={ type={"ammo_9mm"}, give={HL.PickupGifts["mp5"].primary} } },
     }
   },
   [MT_SCATTERRING] = {
     weights={ shotgun=100 },
     defs = {
-      shotgun = { ammo={ type={"ammo_buckshot"}, give={PG["shotgun"]} } },
+      shotgun = { ammo={ type={"ammo_buckshot"}, give={HL.PickupGifts["shotgun"]} } },
     }
   },
   [MT_BOUNCERING] = {
     weights={ handgrenade=60, satchel=40 },
     defs = {
-      handgrenade = { ammo={ type={"ammo_grenade"}, give={PG["handgrenade"]} } },
-      satchel     = { ammo={ type={"ammo_satchel"}, give={PG["satchel"]} } },
+      handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+      satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
     }
   },
   [MT_GRENADERING] = {
     weights={ handgrenade=30, satchel=40, mp5 = 30 },
     defs = {
-      handgrenade = { ammo={ type={"ammo_grenade"}, give={PG["handgrenade"]} } },
-      satchel     = { ammo={ type={"ammo_satchel"}, give={PG["satchel"]} } },
-      mp5         = { ammo={ type={"ammo_argrenade"}, give={PG["mp5"].secondary} } },
+      handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+      satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
+      mp5         = { ammo={ type={"ammo_argrenade"}, give={HL.PickupGifts["mp5"].secondary} } },
     }
   },
   [MT_EXPLOSIONRING] = {
     weights={ satchel=35, crossbow=35, handgrenade=15, mp5 = 15 },
     defs = {
-      satchel     = { ammo={ type={"ammo_satchel"}, give={PG["satchel"]} } },
-      crossbow    = { ammo={ type={"ammo_bolt"}, give={PG["crossbow"]} } },
-      handgrenade = { ammo={ type={"ammo_grenade"}, give={PG["handgrenade"]} } },
-      mp5         = { ammo={ type={"ammo_argrenade"}, give={PG["mp5"].secondary} } },
+      satchel     = { ammo={ type={"ammo_satchel"}, give={HL.PickupGifts["satchel"]} } },
+      crossbow    = { ammo={ type={"ammo_bolt"}, give={HL.PickupGifts["crossbow"]} } },
+      handgrenade = { ammo={ type={"ammo_grenade"}, give={HL.PickupGifts["handgrenade"]} } },
+      mp5         = { ammo={ type={"ammo_argrenade"}, give={HL.PickupGifts["mp5"].secondary} } },
     }
   },
   [MT_RAILRING] = {
     weights={ ["357"]=50, crossbow=50},
     defs = {
-      ["357"] = { ammo={ type={"ammo_357"}, give={PG["357"]} } },
-      crossbow = { ammo={ type={"ammo_bolt"}, give={PG["crossbow"]} } },
+      ["357"] = { ammo={ type={"ammo_357"}, give={HL.PickupGifts["357"]} } },
+      crossbow = { ammo={ type={"ammo_bolt"}, give={HL.PickupGifts["crossbow"]} } },
     }
   },
   
@@ -312,13 +312,13 @@ local matchRingDefs = {
       handgrenade = {
         ammo = {
           type={"ammo_grenade"},
-          give={PG["handgrenade"]},
+          give={HL.PickupGifts["handgrenade"]},
         }
       },
       satchel = {
         ammo = {
           type={"ammo_satchel"},
-          give={PG["satchel"]},
+          give={HL.PickupGifts["satchel"]},
         }
       },
     }
@@ -330,13 +330,13 @@ local matchRingDefs = {
       handgrenade = {
         ammo = {
           type={"ammo_grenade"},
-          give={PG["handgrenade"]},
+          give={HL.PickupGifts["handgrenade"]},
         }
       },
       satchel = {
         ammo = {
           type={"ammo_satchel"},
-          give={PG["satchel"]},
+          give={HL.PickupGifts["satchel"]},
         }
       },
     }
@@ -348,13 +348,13 @@ local matchRingDefs = {
       satchel = {
         ammo = {
           type={"ammo_satchel"},
-          give={PG["satchel"]},
+          give={HL.PickupGifts["satchel"]},
         }
       },
       handgrenade = {
         ammo = {
           type={"ammo_grenade"},
-          give={PG["handgrenade"]},
+          give={HL.PickupGifts["handgrenade"]},
         }
       },
       crossbow = {
@@ -382,7 +382,7 @@ local function RingTouch(special, toucher)
 	if not special.valid or not toucher.valid then return end
 	local player = toucher.player
 
-	local entry = AmmoPickupStats[special.type]
+	local entry = HL.AmmoPickupStats[special.type]
 	if not entry then return end
 
 	local choice = WeightedPick(entry.weights)
@@ -413,7 +413,7 @@ addHook("TouchSpecial", RingTouch, MT_RAILRING)
 addHook("MobjSpawn", function(mobj)
 	if not (mobj and mobj.valid) then return end
 
-	local entry = matchRingDefs[mobj.type]
+	local entry = HL.matchRingDefs[mobj.type]
 	if not entry then return end
 
 	local choice = WeightedPick(entry.weights)
@@ -426,7 +426,7 @@ addHook("MobjSpawn", function(mobj)
 	end
 
 	mobj.pickupstats = stats
-	mobj.hl.nobasebehavior = true
+	--mobj.hl.nobasebehavior = true
 
 	if TOL_DOOM and (maptol & TOL_DOOM) or not TOL_DOOM then return end
 	if not HL.botsOnMobius then return end
@@ -445,10 +445,7 @@ addHook("MobjSpawn", function(mobj)
 
 	-- Now handle any overlapping ammo items
 	local howmany = HL.positionMap[posKey]
-		if #howmany >= 6 then
-			print("Found " .. #howmany .. " at current position")
-			mobj.pickupstats.doubleammo = true
-		end
+	if #howmany >= 6 then
+		mobj.pickupstats.doubleammo = true
+	end
 end)
-
-HL.matchRingDefs = matchRingDefs

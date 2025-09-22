@@ -5,8 +5,9 @@ local function SafeFreeSlot(...)
 	end
 end
 
-SafeFreeSlot("sfx_hlwpnu","sfx_hdryfi","sfx_hldeny","sfx_hl1ljm","sfx_hlmedi","S_PLAY_LONGJUMP","S_PLAY_HLJUMP","SPR2_LJMP",
-"MT_HL_HEWATCHES", "S_HL_GAYMAN", "SPR_HL1GMAN")
+SafeFreeSlot("sfx_hlwpnu","sfx_hdryfi","sfx_tfcrit","sfx_hldeny","sfx_hl1ljm","sfx_hlmedi","S_PLAY_LONGJUMP","S_PLAY_HLJUMP","SPR2_LJMP",
+"MT_HL_HEWATCHES", "S_HL_GAYMAN", "SPR_HL1GMAN",
+"sfx_hlgibd")
 
 states[S_HL_GAYMAN] = {
 	sprite = SPR_HL1GMAN,
@@ -42,6 +43,24 @@ mobjinfo[MT_HL_HEWATCHES] = {
 	dispoffset = 4,
 }
 
+SafeFreeSlot("SPR_HL1GIB", "S_HL_GIB", "MT_HL_GIBS")
+
+states[S_HL_GIB] = {
+	sprite = SPR_HL1GIB,
+	frame = A,
+	tics = -1,
+	nextstate = S_HL_GIB
+}
+
+mobjinfo[MT_HL_GIBS] = {
+	spawnstate = S_HL_GIB,
+	spawnhealth = 100,
+	speed = 80*FRACUNIT,
+	radius = 6*FRACUNIT,
+	height = 12*FRACUNIT,
+	dispoffset = 4,
+}
+
 local function warn(player, str)
 	CONS_Printf(player, "\130WARNING: \128"..str)
 end
@@ -62,6 +81,7 @@ HL.cacheShit = {
 
 HL.MAX_HISTORY = 6
 HL.BULLETSPEED = 8 * FRACUNIT
+HL.GIB_HEALTH_VALUE	= -30
 local BASE_PATH = "client/halflife/"
 HL.KEYBINDS_PATH     = BASE_PATH.."keybinds.dat"
 HL.SPRAY_CONFIG_PATH = BASE_PATH.."spray.cfg"
@@ -586,11 +606,13 @@ end
 rawset(_G, "HL_GetWeapons", function(items, targetSlot, player)
 	local filtered = {}
 	local filteredweps = {
-		usable = {} -- usable entries
+		usable = {},   -- usable entries
+		railring = {}, -- entries marked as "rail ring"
 	}
 	for i = 0, 9 do
 		filteredweps[i] = 0
 		filteredweps.usable[i] = {}
+		filteredweps.railring[i] = {}
 	end
 
 	if not player then
@@ -626,6 +648,7 @@ rawset(_G, "HL_GetWeapons", function(items, targetSlot, player)
 				table.insert(slotTables[slot], {
 					name = name,
 					priority = data.priority,
+					railring = data.rsrrailring,
 					usable = usable
 				})
 
@@ -634,6 +657,7 @@ rawset(_G, "HL_GetWeapons", function(items, targetSlot, player)
 					table.insert(filtered, {
 						name = name,
 						priority = data.priority,
+						railring = data.rsrrailring,
 						id = #filtered + 1,
 						usable = usable
 					})
@@ -652,6 +676,7 @@ rawset(_G, "HL_GetWeapons", function(items, targetSlot, player)
 
 		for i, wep in ipairs(weps) do
 			filteredweps.usable[slot][i] = wep.usable
+			filteredweps.railring[slot][i] = wep.railring
 		end
 	end
 
@@ -1021,7 +1046,7 @@ rawset(_G, "HL_IsAlly", function(player1, player2, useff)
 	if G_GametypeHasTeams()
 		return player1.ctfteam == player2.ctfteam
 	else // Everyone is an ally, or everyone is a foe!
-		return not G_RingSlingerGametype()
+		return not (gametyperules & GTR_RINGSLINGER)--G_RingSlingerGametype()
 	end
 end)
 
@@ -1214,6 +1239,16 @@ rawset(_G, "HL_ApplyPickupStats", function(mobj, stats)
 		end
 	end
 
+	if stats.rsrrailring then
+		player.hl.rsr = $ or {}
+		local curAmmo = player.hl.rsr.railring
+		player.hl.rsr.railring = ($ or 0) + (stats.rsrrailring or 1)
+		if player.hl.rsr.railring > 10 then
+			player.hl.rsr.railring = 10
+		end
+		isAKeeper = curAmmo == player.hl.rsr.railring
+	end
+
     -- Weapon(s)
     if stats.weapon then
         if type(stats.weapon) == "table" then
@@ -1338,6 +1373,10 @@ HL.killfeedNames = {
 	[MT_METALSONIC_RACE]     = "monster_metalsonic_race",
 	[MT_METALSONIC_BATTLE]   = "monster_metalsonic_battle",
 }
+
+rawset(_G, "HL_IsRSRGametype", function()
+    return RSR and RSR.GamemodeActive()
+end)
 
 rawset(_G, "HL_HandleKillFeed", function(victim, source, inflictor, dmgType)
     local killerPlayer = nil
@@ -1471,10 +1510,21 @@ end)
 addHook("TouchSpecial", function(item, mobj)
     if mobj.skin ~= "kombifreeman" then return end
     local stats = item.pickupstats or HL_PickupStats[item.type]
+
+	if item.rsrIsPanel and stats.ammo and stats.ammo.give then
+		for i, amount in ipairs(stats.ammo.give) do
+			stats.ammo.give[i] = amount * 2
+		end
+	end
+
     if not stats then return end
 
     if HL_ApplyPickupStats(mobj, stats) then
-        P_RemoveMobj(item)
+		if RSR then
+			-- GOD why does RSR need to be a needy baby sometimes
+			RSR.SetItemFuse(item)
+		end
+		P_KillMobj(item)
     elseif item.hl.nobasebehavior then return true end
 end)
 
@@ -1668,6 +1718,10 @@ COM_AddCommand("give", function(player, item)
 		HL_ApplyPickupStats(player, {health = {give = 25}})
 	elseif item == "item_suit" then
 		HL_ApplyPickupStats(player, {suit = true})
+	elseif item == "monster_gib" then
+		local gib = P_SpawnMobjFromMobj(player.mo, 0, 0, player.mo.height/2, MT_HL_GIBS)
+		gib.scale = FRACUNIT*2/3
+		gib.frame = 1
 	end
 end)
 

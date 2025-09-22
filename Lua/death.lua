@@ -80,10 +80,14 @@ addHook("MobjDeath", function(mobj, inflictor, source, damageType)
 	0,
 	-- mobj.player.height - 8 * FRACUNIT,
 	MT_FREEMDEATHCAM)
+	mobj.hl.attackDir = {}
+	local attackDir = mobj.hl.attackDir
+	attackDir.x = inflictor.x - mobj.x
+	attackDir.y = inflictor.y - mobj.y
+	attackDir.z = inflictor.z - mobj.z
 	mobj.player.awayviewaiming = mobj.player.aiming
 	mobj.player.viewrollangle = ANGLE_90-ANG10
 	mobj.state = S_INVISIBLE
-	mobj.hl.health = 0
 	FVox_WarnDamage("HEV_DEAD0", mobj.player)
 	local killcam = mobj.player.awayviewmobj
 	killcam.radius = mobj.radius
@@ -99,18 +103,25 @@ addHook("MobjDeath", function(mobj, inflictor, source, damageType)
 	mobj.player.killcam = killcam
 
 	if gametype != GT_SAXAMM then
-		mobj.corpse = P_SpawnMobjFromMobj(mobj, 0, 0, 0, MT_FREEMCORPSE)
-		local corpse = mobj.corpse
-		corpse.radius = mobj.radius
-		corpse.height = mobj.radius*2
-		corpse.color = mobj.color
-		corpse.angle = mobj.angle
-		corpse.z = $ - (mobj.height - 8 * FRACUNIT)
-		corpse.skin = "kombifreeman"
-		corpse.state = S_PLAY_FREEDYING1
-		corpse.momz = mobj.momz + (mobj.killfallvel or 0)
-		corpse.fuse = cv_corpselifetime.value*TICRATE
+		if mobj.hl.health > HL.GIB_HEALTH_VALUE then
+			mobj.corpse = P_SpawnMobjFromMobj(mobj, 0, 0, 0, MT_FREEMCORPSE)
+			local corpse = mobj.corpse
+			corpse.radius = mobj.radius
+			corpse.height = mobj.radius*2
+			corpse.color = mobj.color
+			corpse.angle = mobj.angle
+			corpse.z = $ - (mobj.height - 8 * FRACUNIT)
+			corpse.skin = "kombifreeman"
+			corpse.state = S_PLAY_FREEDYING1
+			corpse.momz = mobj.momz + (mobj.killfallvel or 0)
+			corpse.fuse = cv_corpselifetime.value*TICRATE
+		else
+			S_StartSound(mobj, sfx_hlgibd)
+			HL_DoGibFX(mobj)
+		end
 	end
+
+	mobj.hl.health = 0
 
 	-- De-init objects parented to the player if there were any this life
 	local hl = mobj.player and mobj.player.hl
